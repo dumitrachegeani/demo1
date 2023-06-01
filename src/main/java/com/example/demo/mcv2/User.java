@@ -1,22 +1,25 @@
 package com.example.demo.mcv2;
 
 
+import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.web.bind.annotation.GetMapping;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import java.lang.annotation.Target;
 
 /**
  * Modelul de date pentru entitatea User.
  */
 @Entity
-@Data
+@Getter
+@Setter
+@Table(name = "user_table")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String name;

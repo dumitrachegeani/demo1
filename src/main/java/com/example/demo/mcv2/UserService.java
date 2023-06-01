@@ -38,17 +38,17 @@ public class UserService {
     /**
      * Returnează un utilizator după ID.
      */
-    public User getUserById(Long id) {
+    public User getUserById(Long id) throws UserNotFound {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFound("User not found"));
     }
 
     /**
      * Actualizează un utilizator existent.
      */
-    public User updateUser(Long id, User user) {
+    public User updateUser(Long id, User user) throws UserNotFound {
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UserNotFound("User not found"));
         existingUser.setName(user.getName());
         existingUser.setEmail(user.getEmail());
         return userRepository.save(existingUser);

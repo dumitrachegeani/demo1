@@ -1,6 +1,7 @@
 package com.example.demo.mcv2;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,7 +20,6 @@ public class UserController {
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
-        // TODO:xdd
     }
 
     /**
@@ -42,8 +42,12 @@ public class UserController {
      * Endpoint-ul pentru obținerea unui utilizator după ID.
      */
     @GetMapping("/users/{id}")
-    public User getUserById(@PathVariable Long id) {
-        return userService.getUserById(id);
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        try {
+            return ResponseEntity.ok(userService.getUserById(id));
+        } catch (UserNotFound e) {
+            return ResponseEntity.noContent().build();
+        }
     }
 
     /**
@@ -51,14 +55,20 @@ public class UserController {
      */
     @PutMapping("/users/{id}")
     public User updateUser(@PathVariable Long id, @RequestBody User user) {
-        return userService.updateUser(id, user);
+        try {
+            return userService.updateUser(id, user);
+        } catch (UserNotFound e) {
+            // aici ar trebui gestionat
+            throw new RuntimeException(e);
+        }
     }
 
     /**
      * Endpoint-ul pentru ștergerea unui utilizator după ID.
      */
-    @DeleteMapping("/users/{id}")
-    public void deleteUser(@PathVariable Long id) {
+    @DeleteMapping("/users")
+    public String deleteUser(@RequestParam Long id) {
         userService.deleteUser(id);
+        return "Sters cu succes";
     }
 }
