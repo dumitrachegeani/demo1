@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Controller-ul responsabil pentru gestionarea cererilor legate de entitatea User.
@@ -14,61 +15,55 @@ public class UserController {
 
     private final UserService userService;
 
-    /**
-     * Constructorul care injectează dependența către UserService.
-     */
     @Autowired
     public UserController(UserService userService) {
         this.userService = userService;
     }
 
-    /**
-     * Endpoint-ul pentru obținerea tuturor utilizatorilor.
-     */
     @GetMapping("/users")
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        List<UserDTO> userDTOs = users.stream()
+                .map(UserDTO::fromUser)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(userDTOs);
     }
 
-    /**
-     * Endpoint-ul pentru crearea unui nou utilizator.
-     */
     @PostMapping("/users")
-    public User createUser(@RequestBody User user) {
-        return userService.createUser(user);
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+        User user = userDTO.toUser();
+        User createdUser = userService.createUser(user);
+        UserDTO createdUserDTO = UserDTO.fromUser(createdUser);
+        return ResponseEntity.ok(createdUserDTO);
     }
 
-    /**
-     * Endpoint-ul pentru obținerea unui utilizator după ID.
-     */
     @GetMapping("/users/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         try {
-            return ResponseEntity.ok(userService.getUserById(id));
+            User user = userService.getUserById(id);
+            UserDTO userDTO = UserDTO.fromUser(user);
+            return ResponseEntity.ok(userDTO);
         } catch (UserNotFound e) {
-            return ResponseEntity.noContent().build();
+            return ResponseEntity.notFound().build();
         }
     }
 
-    /**
-     * Endpoint-ul pentru actualizarea unui utilizator existent.
-     */
     @PutMapping("/users/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
         try {
-            return userService.updateUser(id, user);
+            User user = userDTO.toUser();
+            User updatedUser = userService.updateUser(id, user);
+            UserDTO updatedUserDTO = UserDTO.fromUser(updatedUser);
+            return ResponseEntity.ok(updatedUserDTO);
         } catch (UserNotFound e) {
-            // aici ar trebui gestionat
-            throw new RuntimeException(e);
+            return ResponseEntity.notFound().build();
         }
     }
 
-    /**
-     * Endpoint-ul pentru ștergerea unui utilizator după ID.
-     */
-    @DeleteMapping("/users")
-    public String deleteUser(@RequestParam Long id) {
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return "Sters cu succes";
+        return ResponseEntity.ok("User deleted successfully");
     }
 }
+

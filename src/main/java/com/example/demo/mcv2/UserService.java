@@ -1,7 +1,9 @@
 package com.example.demo.mcv2;
 
+import org.hibernate.engine.internal.Collections;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 
@@ -12,13 +14,17 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+    private final AddressRepository addressRepository;
 
     /**
      * Constructorul care injectează dependența către UserRepository.
      */
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, ProductRepository productRepository, AddressRepository addressRepository) {
         this.userRepository = userRepository;
+        this.productRepository = productRepository;
+        this.addressRepository = addressRepository;
     }
 
     /**
@@ -32,7 +38,24 @@ public class UserService {
      * Creează un nou utilizator.
      */
     public User createUser(User user) {
-        return userRepository.save(user);
+
+        // Save the user entity in the database
+        User createdUser = userRepository.save(user);
+
+        // Set the user for each product
+        List<Product> products = user.getProducts();
+        if (products != null && !products.isEmpty()) {
+            productRepository.saveAll(products);
+        }
+
+        // Save the associated addresses
+        List<Address> addresses = user.getAddresses();
+        if (addresses != null && !addresses.isEmpty()) {
+            addresses.forEach(address -> address.setUser(createdUser));
+            addressRepository.saveAll(addresses);
+        }
+
+        return createdUser;
     }
 
     /**
